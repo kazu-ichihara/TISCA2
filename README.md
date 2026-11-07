@@ -14,7 +14,7 @@ Step 4   Step 3       →  filtered & classified TIS candidates
 ## Installation
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/TISCA2.git
+git clone https://github.com/kazu-ichihara/TISCA2.git
 cd TISCA2
 pip install -e .
 ```
