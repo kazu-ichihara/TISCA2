@@ -1,0 +1,37 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "tisca2"
+version = "0.1.0"
+description = "Translation Initiation Site Calling Algorithm 2 for NGS data"
+readme = "README.md"
+license = { file = "LICENSE" }
+requires-python = ">=3.10"
+dependencies = [
+    "numpy>=1.24",
+    "pandas>=2.0",
+    "biopython>=1.81",
+    "pysam>=0.21",
+    "tqdm>=4.0",
+    "scikit-learn>=1.0",
+    "scipy>=1.9",
+    "matplotlib>=3.6",
+]
+
+[project.scripts]
+tisca2-step1 = "tisca2.step1_translon.translon_generator:main"
+tisca2-step2 = "tisca2.step2_metagene.metagene:main"
+tisca2-step3 = "tisca2.step3_scorer.scorer:main"
+tisca2-step4 = "tisca2.step4_filter.filter_classify:main"
+
+[project.optional-dependencies]
+dev = ["pytest>=7.0"]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["tisca2*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
