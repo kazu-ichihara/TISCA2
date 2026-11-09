@@ -57,9 +57,9 @@ def parse_gtf(gtf_path: str) -> tuple[pd.DataFrame, dict]:
     gtf = pd.read_csv(gtf_path, sep='\t', header=None, comment='#')
     gtf = gtf.drop([1, 5, 7], axis=1)
     gtf.columns = ['chr', 'type', 'start', 'end', 'strand', 'annotation']
-    gtf_tr = gtf[gtf['type'] != 'gene'].copy()
+    gtf = gtf[gtf['type'] != 'gene'].copy()
     anns = []
-    for x in gtf_tr['annotation']:
+    for x in gtf['annotation']:
         ann = {}
         for x1 in x.strip().rstrip(';').split('; '):
             x1 = x1.strip()
@@ -68,13 +68,13 @@ def parse_gtf(gtf_path: str) -> tuple[pd.DataFrame, dict]:
             key, val = x1.split(' ', 1)
             ann[key] = val
         anns.append(ann.get('transcript_id', '').replace('"', ''))
-    gtf_tr['id'] = pd.Series(anns)
+    gtf_path['id'] = pd.Series(anns)
 
     # chr/strand lookup table per transcript
-    d = gtf_tr[['chr', 'strand', 'id']].drop_duplicates('id').set_index('id')
+    d = gtf[['chr', 'strand', 'id']].drop_duplicates('id').set_index('id')
 
     # Exon dictionary
-    gtf_exon = gtf_tr[gtf_tr['type'] == 'exon'][['chr', 'start', 'end', 'strand', 'id']]
+    gtf_exon = gtf[gtf['type'] == 'exon'][['chr', 'start', 'end', 'strand', 'id']]
     ex_plus  = gtf_exon[gtf_exon['strand'] == '+']
     ex_minus = gtf_exon[gtf_exon['strand'] != '+'].sort_values('start', ascending=False)
 
@@ -232,13 +232,12 @@ def build_annotated_translon(gtf_path: str, exon_dict: dict, d: pd.DataFrame) ->
         index=transcript_id, columns=['length', 'symbol']
     """
     # Exclude gene-level rows; work at transcript level
-    gtf_raw = pd.read_csv(gtf_path, sep='\t', header=None, comment='#')
-    gtf_raw = gtf_raw.drop([1, 5, 7], axis=1)
-    gtf_raw.columns = ['chr', 'type', 'start', 'end', 'strand', 'annotation']
-    gtf = gtf_raw[gtf_raw['type'] != 'gene'].copy()
-    gtf_tr = gtf[gtf['type'] == 'transcript'].copy()
+    gtf = pd.read_csv(gtf_path, sep='\t', header=None, comment='#')
+    gtf = gtf_path.drop([1, 5, 7], axis=1)
+    gtf.columns = ['chr', 'type', 'start', 'end', 'strand', 'annotation']
+    gtf = gtf[gtf['type'] != 'gene']
     anns = []
-    for x in gtf_tr['annotation']:
+    for x in gtf['annotation']:
         ann = {}
         for x1 in x.strip().rstrip(';').split('; '):
             x1 = x1.strip()
@@ -249,9 +248,10 @@ def build_annotated_translon(gtf_path: str, exon_dict: dict, d: pd.DataFrame) ->
         anns.append([ann.get('transcript_id', '').replace('"', ''),
                     ann.get('gene_name', '').replace('"', '')])
     ann_df = pd.DataFrame(anns, columns=['id', 'symbol'])
-    gtf_tr = pd.concat([gtf_tr, ann_df], axis=1)
+    gtf = pd.concat([gtf, ann_df], axis=1)
 
     # Gene symbol table (also store transcript length)
+    gtf_tr = gtf[gtf['type'] == 'transcript'].copy()
     gtf_tr['length'] = gtf_tr['end'] - gtf_tr['start']
     symbol = gtf_tr[['id', 'length', 'symbol']].drop_duplicates('id').set_index('id')
 
