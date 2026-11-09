@@ -90,7 +90,7 @@ def compute_pr_threshold(
     thres : float
         Cosine similarity threshold at the precision==recall crossing.
     """
-    sc_test = sc[sc['Transcript ID'].isin(ref_index)][['cosine similarity']].copy()
+    sc_test = sc[sc['transcript ID'].isin(ref_index)][['cosine similarity']].copy()
     sc_test['true'] = sc_test.index.isin(starts).astype(int)
 
     # Add annotated starts missing from the scored set as hard negatives
@@ -160,7 +160,7 @@ def find_local_maxima(sc: pd.DataFrame) -> list:
     element can also be selected as a local maximum.
     """
     lmax = []
-    for _tid, group in sc.groupby('Transcript ID'):
+    for _tid, group in sc.groupby('transcript ID'):
         y = group['cosine similarity'].values
         y = np.insert(y, 0, -1)
         a = argrelmax(y)[0] - 1
@@ -274,13 +274,13 @@ def run(
     print(f'[Step 4] Loading cosine scores: {cosine_path}')
     sc = pd.read_csv(cosine_path)
     sc = sc[sc['length coverage'] >= min_length_coverage]
-    sc.index      = sc['Transcript ID'] + '_' + sc['start'].astype(str)
+    sc.index      = sc['transcript ID'] + '_' + sc['start'].astype(str)
     sc.index.name = 'TIS ID'
-    sc = sc.sort_values(['Transcript ID', 'start'])
+    sc = sc.sort_values(['transcript ID', 'start'])
 
     position = pd.read_csv(position_path, index_col=0, header=None)[1]
     sc['position'] = position.reindex(sc.index)
-    sc['symbol']   = [symbol_dict[x] for x in sc['Transcript ID']]
+    sc['symbol']   = [symbol_dict[x] for x in sc['transcript ID']]
     sc.to_csv(out / f'{fname}_cosine_eff.csv')
     print(f'[Step 4] Saved filtered scores: {out / f"{fname}_cosine_eff.csv"}  ({len(sc):,} records)')
 
@@ -301,7 +301,7 @@ def run(
     # ORF annotation
     canonical_list, seq_list, codon_list = [], [], []
     for i in range(len(sc_)):
-        name  = sc_['Transcript ID'].values[i]
+        name  = sc_['transcript ID'].values[i]
         start = sc_['start'].values[i]
         seq_list.append(str(seq_dict[name][start:].translate(to_stop=True)))
         codon_list.append(str(seq_dict[name][start:start + 3]).upper())
@@ -313,7 +313,7 @@ def run(
     sc_['codon']              = codon_list
     sc_['ORF_length']         = sc_['seq'].apply(len)
     sc_['stop']               = sc_['start'] + sc_['ORF_length'] * 3
-    sc_['transcript_length']  = [len_dict[x] for x in sc_['Transcript ID']]
+    sc_['transcript_length']  = [len_dict[x] for x in sc_['transcript ID']]
 
     # Out-of-frame flag
     out_of_frame = []
@@ -328,7 +328,7 @@ def run(
     # ORF type classification
     types = []
     for i in range(len(sc_)):
-        name   = sc_['Transcript ID'].values[i]
+        name   = sc_['transcript ID'].values[i]
         start  = sc_['start'].values[i]
         stop   = sc_['stop'].values[i] + 3
         length = len_dict[name]
