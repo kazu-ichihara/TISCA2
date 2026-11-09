@@ -92,9 +92,9 @@ class TestFindLocalMaxima:
         rows = []
         for tid, scores in scores_by_tid.items():
             for i, s in enumerate(scores):
-                rows.append({'Transcript ID': tid, 'start': i * 10, 'cosine similarity': s})
+                rows.append({'transcript ID': tid, 'start': i * 10, 'cosine similarity': s})
         df = pd.DataFrame(rows)
-        df.index = df['Transcript ID'] + '_' + df['start'].astype(str)
+        df.index = df['transcript ID'] + '_' + df['start'].astype(str)
         df.index.name = 'TIS ID'
         return df
 
