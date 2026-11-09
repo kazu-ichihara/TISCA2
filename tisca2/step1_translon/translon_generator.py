@@ -225,8 +225,19 @@ def build_annotated_translon(gtf_path: str, exon_dict: dict, d: pd.DataFrame) ->
     gtf_raw = gtf_raw.drop([1, 5, 7], axis=1)
     gtf_raw.columns = ['chr', 'type', 'start', 'end', 'strand', 'annotation']
     gtf_tr = gtf_raw[gtf_raw['type'] != 'gene'].copy()
-    gtf_tr['id']     = [x.split(';')[1].split('"')[1] for x in gtf_tr['annotation']]
-    gtf_tr['symbol'] = [x.split(';')[3].split('"')[1] for x in gtf_tr['annotation']]
+    anns = []
+    for x in gtf_tr['annotation']:
+        ann = {}
+        for x1 in x.strip().rstrip(';').split('; '):
+            x1 = x1.strip()
+            if ' ' not in x1:
+                continue
+            key, val = x1.split(' ', 1)
+            ann[key] = val
+        anns.append([ann.get('transcript_id', '').replace('"', ''),
+                    ann.get('gene_name', '').replace('"', '')])
+    ann_df = pd.DataFrame(anns, columns=['id', 'symbol'])
+    gtf_tr = pd.concat([gtf_tr, ann_df], axis=1)
 
     # Gene symbol table (also store transcript length)
     gtf_tr['length'] = gtf_tr['end'] - gtf_tr['start']
