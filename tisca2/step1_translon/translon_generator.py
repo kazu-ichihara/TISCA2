@@ -57,13 +57,24 @@ def parse_gtf(gtf_path: str) -> tuple[pd.DataFrame, dict]:
     gtf = pd.read_csv(gtf_path, sep='\t', header=None, comment='#')
     gtf = gtf.drop([1, 5, 7], axis=1)
     gtf.columns = ['chr', 'type', 'start', 'end', 'strand', 'annotation']
-    gtf['id'] = [x.split(';')[1].split('"')[1] for x in gtf['annotation']]
+    gtf_tr = gtf[gtf['type'] != 'gene'].copy()
+    anns = []
+    for x in gtf_tr['annotation']:
+        ann = {}
+        for x1 in x.strip().rstrip(';').split('; '):
+            x1 = x1.strip()
+            if ' ' not in x1:
+                continue
+            key, val = x1.split(' ', 1)
+            ann[key] = val
+        anns.append(ann.get('transcript_id', '').replace('"', ''))
+    gtf_tr['id'] = pd.Series(anns)
 
     # chr/strand lookup table per transcript
-    d = gtf[['chr', 'strand', 'id']].drop_duplicates('id').set_index('id')
+    d = gtf_tr[['chr', 'strand', 'id']].drop_duplicates('id').set_index('id')
 
     # Exon dictionary
-    gtf_exon = gtf[gtf['type'] == 'exon'][['chr', 'start', 'end', 'strand', 'id']]
+    gtf_exon = gtf_tr[gtf_tr['type'] == 'exon'][['chr', 'start', 'end', 'strand', 'id']]
     ex_plus  = gtf_exon[gtf_exon['strand'] == '+']
     ex_minus = gtf_exon[gtf_exon['strand'] != '+'].sort_values('start', ascending=False)
 
