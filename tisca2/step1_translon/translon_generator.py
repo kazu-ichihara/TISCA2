@@ -127,7 +127,7 @@ def find_orfs(seq_dict: dict, codons: list[str]) -> pd.DataFrame:
     Returns
     -------
     df : pd.DataFrame
-        columns=['Transcript ID', 'codon', 'start', 'stop']
+        columns=['transcript ID', 'codon', 'start', 'stop']
         start/stop are 0-based nucleotide positions on the transcript.
     """
     orfs = []
@@ -152,7 +152,7 @@ def find_orfs(seq_dict: dict, codons: list[str]) -> pd.DataFrame:
                         p2 = frame + (p + stop_rel[0]) * 3
                         orfs.append([name, codon, p1, p2])
 
-    df = pd.DataFrame(orfs, columns=['Transcript ID', 'codon', 'start', 'stop'])
+    df = pd.DataFrame(orfs, columns=['transcript ID', 'codon', 'start', 'stop'])
     return df
 
 
@@ -178,7 +178,7 @@ def build_position_map(df: pd.DataFrame, exon_dict: dict, d: pd.DataFrame) -> di
     pos_dict : dict
         {'{transcript_id}_{start}': '{chrom}:{genomic_pos}'}
     """
-    d1 = {k: np.array(v['start']) for k, v in df.groupby('Transcript ID')}
+    d1 = {k: np.array(v['start']) for k, v in df.groupby('transcript ID')}
     pos_dict = {}
 
     for name, starts in d1.items():
@@ -235,7 +235,8 @@ def build_annotated_translon(gtf_path: str, exon_dict: dict, d: pd.DataFrame) ->
     gtf_raw = pd.read_csv(gtf_path, sep='\t', header=None, comment='#')
     gtf_raw = gtf_raw.drop([1, 5, 7], axis=1)
     gtf_raw.columns = ['chr', 'type', 'start', 'end', 'strand', 'annotation']
-    gtf_tr = gtf_raw[gtf_raw['type'] != 'gene'].copy()
+    gtf = gtf_raw[gtf_raw['type'] != 'gene'].copy()
+    gtf_tr = gtf[gtf['type'] == 'transcript'].copy()
     anns = []
     for x in gtf_tr['annotation']:
         ann = {}
@@ -255,14 +256,14 @@ def build_annotated_translon(gtf_path: str, exon_dict: dict, d: pd.DataFrame) ->
     symbol = gtf_tr[['id', 'length', 'symbol']].drop_duplicates('id').set_index('id')
 
     # Keep only transcripts that have both start_codon and stop_codon annotations
-    gtf_codon = gtf_tr[gtf_tr['type'].isin(['start_codon', 'stop_codon'])]
+    gtf_codon = gtf[gtf['type'].isin(['start_codon', 'stop_codon'])]
     codon_types = gtf_codon.groupby('id')['type'].apply(lambda x: ' '.join(x.unique()))
     valid_ids = list(
         codon_types[
             codon_types.str.contains('start_codon') & codon_types.str.contains('stop_codon')
         ].index
     )
-    gtf_coding = gtf_tr[gtf_tr['id'].isin(valid_ids)]
+    gtf_coding = gtf[gtf['id'].isin(valid_ids)]
 
     gtf_start = gtf_coding[gtf_coding['type'] == 'start_codon']
     gtf_stop  = gtf_coding[gtf_coding['type'] == 'stop_codon']
@@ -341,7 +342,7 @@ def run(gtf_path: str, fasta_path: str, output_dir: str, fname: str, codons: lis
     print(f"[Step 1] Saved translon list: {translon_csv}  ({len(df):,} records)")
 
     # Translon dictionary (pickle)
-    d1 = {k: np.array(v['start']) for k, v in df.groupby('Transcript ID')}
+    d1 = {k: np.array(v['start']) for k, v in df.groupby('transcript ID')}
     translon_pkl = out / f'{fname}_translon_dict.pickle'
     with open(translon_pkl, 'wb') as fh:
         pickle.dump(d1, fh)
