@@ -57,7 +57,7 @@ def parse_gtf(gtf_path: str) -> tuple[pd.DataFrame, dict]:
     gtf = pd.read_csv(gtf_path, sep='\t', header=None, comment='#')
     gtf = gtf.drop([1, 5, 7], axis=1)
     gtf.columns = ['chr', 'type', 'start', 'end', 'strand', 'annotation']
-    gtf = gtf[gtf['type'] != 'gene'].copy()
+    gtf = gtf[gtf['type'] != 'gene'].reset_index(drop=True)
     anns = []
     for x in gtf['annotation']:
         ann = {}
@@ -68,7 +68,7 @@ def parse_gtf(gtf_path: str) -> tuple[pd.DataFrame, dict]:
             key, val = x1.split(' ', 1)
             ann[key] = val
         anns.append(ann.get('transcript_id', '').replace('"', ''))
-    gtf_path['id'] = pd.Series(anns)
+    gtf['id'] = pd.Series(anns)
 
     # chr/strand lookup table per transcript
     d = gtf[['chr', 'strand', 'id']].drop_duplicates('id').set_index('id')
@@ -233,9 +233,9 @@ def build_annotated_translon(gtf_path: str, exon_dict: dict, d: pd.DataFrame) ->
     """
     # Exclude gene-level rows; work at transcript level
     gtf = pd.read_csv(gtf_path, sep='\t', header=None, comment='#')
-    gtf = gtf_path.drop([1, 5, 7], axis=1)
+    gtf = gtf.drop([1, 5, 7], axis=1)
     gtf.columns = ['chr', 'type', 'start', 'end', 'strand', 'annotation']
-    gtf = gtf[gtf['type'] != 'gene']
+    gtf = gtf[gtf['type'] != 'gene'].reset_index(drop=True)
     anns = []
     for x in gtf['annotation']:
         ann = {}
