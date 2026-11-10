@@ -21,6 +21,7 @@ def _make_read(positions, rlen):
 
 def _make_bam(reads_by_transcript):
     bam = MagicMock()
+    bam.references = tuple(reads_by_transcript.keys())
     bam.fetch.side_effect = lambda name: reads_by_transcript.get(name, [])
     return bam
 

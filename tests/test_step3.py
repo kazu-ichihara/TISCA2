@@ -204,7 +204,7 @@ class TestOutputColumns:
         # Simulate the per-transcript call and assemble a DataFrame as main() does
         records = score_translons(dist, ref, starts=np.array([60]), half_window=30)
         df = pd.DataFrame(records, columns=['start', 'cosine similarity', 'length coverage'])
-        df.insert(0, 'Transcript ID', 'TX1')
+        df.insert(0, 'transcript ID', 'TX1')
 
-        assert 'Transcript ID' in df.columns
-        assert 'transcript ID' not in df.columns
+        assert 'transcript ID' in df.columns
+        assert 'Transcript ID' not in df.columns
