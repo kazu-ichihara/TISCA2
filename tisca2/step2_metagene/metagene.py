@@ -82,8 +82,8 @@ def build_metagene(
     metas  = np.zeros((n_rows, n_cols))
 
     bamfile = pysam.AlignmentFile(bam_path, 'rb')
-
-    for name in id_list:
+    accept = list(set(bamfile.references)&set(id_list))
+    for name in accept:
         if name not in start_dict or name not in len_dict:
             continue
 
