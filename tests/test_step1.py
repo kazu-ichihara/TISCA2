@@ -43,7 +43,7 @@ class TestFindOrfs:
     def test_basic_atg(self, simple_orfs):
         assert len(simple_orfs) == 1
         row = simple_orfs.iloc[0]
-        assert row['Transcript ID'] == 'TX1'
+        assert row['transcript ID'] == 'TX1'
         assert row['codon'] == 'ATG'
         assert row['start'] == 0
         assert row['stop'] == 6  # TAG は pos 6
@@ -65,11 +65,11 @@ class TestFindOrfs:
         seq = 'AATGTTTTAGATGCCC'  # deliberately mixed frames
         df = find_orfs({'TX': seq}, ['ATG'])
         frames_found = set((row['start'] % 3) for _, row in df.iterrows()
-                           if row['Transcript ID'] == 'TX')
+                           if row['transcript ID'] == 'TX')
         assert len(frames_found) >= 1
 
     def test_output_columns(self, simple_orfs):
-        assert list(simple_orfs.columns) == ['Transcript ID', 'codon', 'start', 'stop']
+        assert list(simple_orfs.columns) == ['transcript ID', 'codon', 'start', 'stop']
 
     def test_start_less_than_stop(self, simple_orfs):
         assert (simple_orfs['start'] < simple_orfs['stop']).all()
@@ -81,7 +81,7 @@ class TestFindOrfs:
 class TestBuildPositionMap:
     def _make_fixtures(self):
         df = pd.DataFrame([
-            {'Transcript ID': 'TX1', 'codon': 'ATG', 'start': 0, 'stop': 6}
+            {'transcript ID': 'TX1', 'codon': 'ATG', 'start': 0, 'stop': 6}
         ])
         # Exon: chr1:100-109 (plus strand)
         exon_dict = {'TX1': [(100, 109)]}
@@ -99,7 +99,7 @@ class TestBuildPositionMap:
 
     def test_missing_exon_skipped(self):
         df = pd.DataFrame([
-            {'Transcript ID': 'UNKNOWN', 'codon': 'ATG', 'start': 0, 'stop': 6}
+            {'transcript ID': 'UNKNOWN', 'codon': 'ATG', 'start': 0, 'stop': 6}
         ])
         exon_dict = {}
         d = pd.DataFrame({'chr': [], 'strand': []})
