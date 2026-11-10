@@ -113,17 +113,16 @@ class TestBuildPositionMap:
 class TestBuildAnnotatedTranslon:
     """Tests for annotated CDS extraction using a minimal GTF file."""
 
-    # Annotation field order: gene_id[0]; transcript_id[1]; extra[2]; gene_name[3]
-    # -> split(';')[1] -> transcript_id, split(';')[3] -> gene_name
+    # Attribute order does not matter; parsed as key-value dict.
     GTF_LINES = '\n'.join([
         # transcript row
-        'chr1\t.\ttranscript\t100\t200\t.\t+\t.\tgene_id "G1"; transcript_id "TX1"; extra "x"; gene_name "GeneA";',
+        'chr1\t.\ttranscript\t100\t200\t.\t+\t.\tgene_id "G1"; transcript_id "TX1"; gene_name "GeneA";',
         # exon row
-        'chr1\t.\texon\t100\t200\t.\t+\t.\tgene_id "G1"; transcript_id "TX1"; extra "x"; gene_name "GeneA";',
+        'chr1\t.\texon\t100\t200\t.\t+\t.\tgene_id "G1"; transcript_id "TX1"; gene_name "GeneA";',
         # start_codon: genomic position 110
-        'chr1\t.\tstart_codon\t110\t112\t.\t+\t.\tgene_id "G1"; transcript_id "TX1"; extra "x"; gene_name "GeneA";',
+        'chr1\t.\tstart_codon\t110\t112\t.\t+\t.\tgene_id "G1"; transcript_id "TX1"; gene_name "GeneA";',
         # stop_codon: genomic positions 130-132
-        'chr1\t.\tstop_codon\t130\t132\t.\t+\t.\tgene_id "G1"; transcript_id "TX1"; extra "x"; gene_name "GeneA";',
+        'chr1\t.\tstop_codon\t130\t132\t.\t+\t.\tgene_id "G1"; transcript_id "TX1"; gene_name "GeneA";',
     ])
 
     def _write_gtf(self, tmp_path):

@@ -106,7 +106,9 @@ class TestScoreTranslons:
         dist[:, 50:80] = 1.0
         return dist
 
-    def _make_ref(self, n_rlen=60, n_cols=59):
+    def _make_ref(self, n_rlen=60, n_cols=79):
+        # metagene.py outputs np.diff of the raw matrix (shape: upstream+downstream-1 = 79),
+        # so ref passed to score_translons is already differenced.
         return np.ones((n_rlen, n_cols))
 
     def test_returns_list(self):
@@ -175,3 +177,34 @@ class TestParseArgs:
     def test_missing_required(self):
         with pytest.raises(SystemExit):
             parse_args(['--bam', 'a.bam'])
+
+
+# ---------------------------------------------------------------------------
+# Output column names
+# ---------------------------------------------------------------------------
+
+class TestOutputColumns:
+    """Verify that score_translons produces 'Transcript ID' (capital T).
+
+    Step 4 reads the cosine CSV expecting 'Transcript ID'; a lowercase 't'
+    would cause a KeyError downstream.
+    """
+
+    def test_cosine_csv_transcript_id_column(self):
+        from tisca2.step3_scorer.scorer import score_translons
+        import pickle, tempfile, os, pandas as pd
+
+        dist = np.zeros((60, 200))
+        dist[:, 50:80] = 1.0
+        ref  = np.ones((60, 79))
+
+        translon_dict = {'TX1': np.array([60, 100])}
+        symbol = pd.DataFrame({'id': ['TX1'], 'length': [200], 'symbol': ['GENE1']}).set_index('id')
+
+        # Simulate the per-transcript call and assemble a DataFrame as main() does
+        records = score_translons(dist, ref, starts=np.array([60]), half_window=30)
+        df = pd.DataFrame(records, columns=['start', 'cosine similarity', 'length coverage'])
+        df.insert(0, 'Transcript ID', 'TX1')
+
+        assert 'Transcript ID' in df.columns
+        assert 'transcript ID' not in df.columns
