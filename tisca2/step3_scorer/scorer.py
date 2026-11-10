@@ -192,7 +192,7 @@ def run(
     symbol   = pd.read_csv(symbol_path, index_col=0)
     len_dict = symbol['length'].to_dict()
 
-    names   = list(start_dict.keys())
+    names   = list(set(start_dict.keys())&set(bamfile.references))
     results = []
 
     bamfile = pysam.AlignmentFile(bam_path, 'rb')
@@ -215,7 +215,7 @@ def run(
 
     bamfile.close()
 
-    df      = pd.DataFrame(results, columns=['Transcript ID', 'start', 'cosine similarity', 'length coverage'])
+    df      = pd.DataFrame(results, columns=['transcript ID', 'start', 'cosine similarity', 'length coverage'])
     out_csv = out / f'{fname}_cosine.csv'
     df.to_csv(out_csv, index=False)
     print(f'[Step 3] Saved cosine scores: {out_csv}  ({len(df):,} records)')
