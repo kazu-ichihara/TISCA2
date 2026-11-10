@@ -148,12 +148,11 @@ def score_translons(
         else:
             ref_slice = ref_meta
 
-        ref_z    = np.diff(ref_slice, axis=1)
-        min_cols = min(z.shape[1], ref_z.shape[1])
+        min_cols = min(z.shape[1], ref_slice.shape[1])
         if min_cols == 0:
             continue
 
-        s = cos_sim(np.ravel(z[:, :min_cols]), np.ravel(ref_z[:, :min_cols]))
+        s = cos_sim(np.ravel(z[:, :min_cols]), np.ravel(ref_slice[:, :min_cols]))
         records.append([start, s, l_cov])
 
     return records
@@ -216,7 +215,7 @@ def run(
 
     bamfile.close()
 
-    df      = pd.DataFrame(results, columns=['transcript ID', 'start', 'cosine similarity', 'length coverage'])
+    df      = pd.DataFrame(results, columns=['Transcript ID', 'start', 'cosine similarity', 'length coverage'])
     out_csv = out / f'{fname}_cosine.csv'
     df.to_csv(out_csv, index=False)
     print(f'[Step 3] Saved cosine scores: {out_csv}  ({len(df):,} records)')
